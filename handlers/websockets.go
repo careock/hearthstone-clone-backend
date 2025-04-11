@@ -2,7 +2,10 @@
 package handlers
 
 import (
+	"encoding/json"
+	"hearthstone-clone-backend/models"
 	"hearthstone-clone-backend/utils"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -12,6 +15,8 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true // Allow connections from any origin
 	},
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
 // HandleWebSocket handles WebSocket connections
@@ -46,6 +51,49 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		// Broadcast the message to clients in the same room
 		utils.HubInstance.Broadcast <- utils.Message{RoomID: roomID, Data: msg}
 
+	}
+
+	for {
+		_, msg, err := client.Conn.ReadMessage()
+		if err != nil {
+			log.Println("Error reading message:", err)
+			utils.UnregisterClient(client)
+			break
+		}
+
+		var message models.Message
+		err = json.Unmarshal(msg, &message)
+		if err != nil {
+			log.Println("Error parsing message:", err)
+			continue
+		}
+
+		switch message.Type {
+		case models.MessageTypeJoinRoom:
+			// Handle join room event
+			// ...
+
+		case models.MessageTypeLeaveRoom:
+			// Handle leave room event
+			// ...
+
+		case models.MessageTypePlayCard:
+			// Handle play card event
+			// ...
+
+		case models.MessageTypeAttack:
+			// Handle attack event
+			// ...
+
+		case models.MessageTypeEndTurn:
+			// Handle end turn event
+			// ...
+
+		// Add more cases for other message types
+
+		default:
+			log.Println("Unknown message type:", message.Type)
+		}
 	}
 
 	// Unregister the client when done

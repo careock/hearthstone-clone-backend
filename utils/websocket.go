@@ -2,6 +2,7 @@
 package utils
 
 import (
+	"hearthstone-clone-backend/models"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -10,6 +11,7 @@ import (
 // Client represents a WebSocket client
 type Client struct {
 	Conn   *websocket.Conn
+	Player models.Player
 	RoomID string // Add RoomID to identify the room
 }
 
