@@ -25,6 +25,21 @@ func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
 	sendEvent(client, response)
 }
 
+func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
+	log.Println(payload)
+	roomID := payload.(string)
+	room := utils.Rooms[roomID]
+	if room == nil {
+		log.Printf("Room not found: %s", roomID)
+		return
+	}
+
+	gameState := &models.GameState{
+		RoomID: room.ID,
+	}
+	room.BroadcastGameState(gameState)
+}
+
 func sendEvent(client *models.Client, event models.GameEvent) {
 	message, err := json.Marshal(event)
 	if err != nil {
@@ -40,6 +55,7 @@ func sendEvent(client *models.Client, event models.GameEvent) {
 
 // func broadcastEvent(room *models.Room, event models.GameEvent) {
 // 	message, err := json.Marshal(event)
+// 	log.Println(room)
 // 	if err != nil {
 // 		log.Println("Error marshaling event:", err)
 // 		return

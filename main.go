@@ -48,6 +48,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		switch event.Type {
 		case "createRoom":
 			handlers.HandleCreateRoomEvent(client, event.Payload)
+		case "joinRoom":
+			handlers.HandleJoinRoomEvent(client, event.Payload)
 		default:
 			log.Println("Unknown event type:", event.Type)
 		}
