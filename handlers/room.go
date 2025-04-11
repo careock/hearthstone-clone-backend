@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"hearthstone-clone-backend/models"
+	"hearthstone-clone-backend/utils"
 
 	"github.com/google/uuid"
 )
@@ -53,6 +54,16 @@ func JoinGame(w http.ResponseWriter, r *http.Request) {
 	}
 	room.Players = append(room.Players, newPlayer)
 	rooms[roomID] = room // Update the room in the map
+
+	// Notify all players in the room about the new player
+	message := []byte("Player " + playerID + " has joined the room.")
+	utils.HubInstance.Broadcast <- message // Notify all clients in the hub
+
+	// Check if both players are in the room
+	if len(room.Players) == 2 {
+		startMessage := []byte("Game started")
+		utils.HubInstance.Broadcast <- startMessage // Notify both players that the game has started
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(room)
