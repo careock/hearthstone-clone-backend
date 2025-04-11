@@ -47,3 +47,10 @@ func randomInt(max int) (int, error) {
 	}
 	return int(num) % max, nil
 }
+
+func startGame(roomID string) {
+	NewDeck()
+}
+
+func DrawCard() {
+}

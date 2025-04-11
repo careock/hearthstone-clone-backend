@@ -62,6 +62,7 @@ func JoinGame(w http.ResponseWriter, r *http.Request) {
 	if len(room.Players) == 2 {
 		startMessage := []byte("Game started")
 		utils.HubInstance.Broadcast <- utils.Message{RoomID: roomID, Data: startMessage}
+		startGame(roomID)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

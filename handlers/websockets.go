@@ -45,6 +45,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 		// Broadcast the message to clients in the same room
 		utils.HubInstance.Broadcast <- utils.Message{RoomID: roomID, Data: msg}
+
 	}
 
 	// Unregister the client when done
