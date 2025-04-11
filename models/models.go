@@ -1,6 +1,10 @@
 // models/models.go
 package models
 
+type GameState struct {
+	Rooms []Room
+}
+
 type Card struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`

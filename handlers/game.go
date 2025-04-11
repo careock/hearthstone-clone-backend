@@ -16,7 +16,6 @@ func NewDeck() (*models.Deck, error) {
 		{ID: uuid.New().String(), Name: "Frostbolt", ManaCost: 2, Type: "spell"},
 		{ID: uuid.New().String(), Name: "Grizzly Bear", ManaCost: 3, Type: "minion"},
 		{ID: uuid.New().String(), Name: "Fire Elemental", ManaCost: 5, Type: "minion"},
-		// Add more cards as needed
 	}
 
 	// Shuffle the deck using crypto/rand

@@ -15,6 +15,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// Define endpoints
+	r.HandleFunc("/game-state", handlers.GetGameState).Methods("GET")
 	r.HandleFunc("/create-room", handlers.CreateRoom).Methods("POST")
 	r.HandleFunc("/join-game", handlers.JoinGame).Methods("POST")
 	r.HandleFunc("/ws", handlers.HandleWebSocket) // Add WebSocket endpoint
