@@ -16,6 +16,14 @@ var upgrader = websocket.Upgrader{
 
 // HandleWebSocket handles WebSocket connections
 func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
+	// Get room ID from query parameters
+	roomID := r.URL.Query().Get("roomId")
+	if roomID == "" {
+		http.Error(w, "Room ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Upgrade the connection to a WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Could not upgrade connection", http.StatusInternalServerError)
@@ -23,18 +31,22 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	client := &utils.Client{Conn: conn}
+	// Create a new client and register it to the room
+	client := &utils.Client{Conn: conn, RoomID: roomID}
 	utils.RegisterClient(client)
 
 	// Listen for messages from the client
 	for {
+		// Read messages from the WebSocket connection
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			break
+			break // Exit the loop if there's an error
 		}
-		// Broadcast the message to all clients
-		utils.HubInstance.Broadcast <- msg
+
+		// Broadcast the message to clients in the same room
+		utils.HubInstance.Broadcast <- utils.Message{RoomID: roomID, Data: msg}
 	}
 
+	// Unregister the client when done
 	utils.UnregisterClient(client)
 }
