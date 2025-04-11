@@ -1,50 +1,59 @@
+// handlers/room.go
 package handlers
 
 import (
-	"hearthstone-clone-backend/models"
+	"encoding/json"
 	"net/http"
+
+	"hearthstone-clone-backend/models"
 
 	"github.com/google/uuid"
 )
 
-func CreateRoom(w http.ResponseWriter, r *http.Request) {
-	// Generate a unique room ID
-	roomID := uuid.New().String()
+var rooms = make(map[string]models.Room)
 
-	// Create a new room
+// CreateRoom creates a new game room and generates an invite link
+func CreateRoom(w http.ResponseWriter, r *http.Request) {
+	roomID := uuid.New().String()
+	inviteLink := "http://localhost:8080/join-game?roomId=" + roomID
+
 	room := models.Room{
 		ID:         roomID,
-		Players:    []models.Player{},
-		InviteLink: "http://localhost:8080/join-game?roomId=" + roomID,
+		InviteLink: inviteLink,
+		Players:    []models.Player{}, // Initialize empty player list
 	}
 
-	///// Store the room in the database (implementation not shown)
+	rooms[roomID] = room
 
-	// Return the invite link to the user
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(room.InviteLink))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(room)
 }
 
+// JoinGame allows a user to join an existing game room
 func JoinGame(w http.ResponseWriter, r *http.Request) {
-	// Get the roomId from the request parameters
 	roomID := r.URL.Query().Get("roomId")
+	room, exists := rooms[roomID]
 
-	// Retrieve the room from the database (implementation not shown)
-	room := models.Room{ID: roomID}
-
-	// Add the player to the room
-	player := models.Player{
-		ID:     uuid.New().String(),
-		Name:   "Player " + string(len(room.Players)+1),
-		Health: 3,
-		Mana:   0,
-		Hand:   []models.Card{},
-		Board:  []models.Card{},
+	if !exists {
+		http.Error(w, "Room not found", http.StatusNotFound)
+		return
 	}
-	room.Players = append(room.Players, player)
 
-	///// Update the room in the database (implementation not shown)
+	// Check if the room already has two players
+	if len(room.Players) >= 2 {
+		http.Error(w, "Room is full", http.StatusForbidden)
+		return
+	}
 
-	// Return a success response
-	w.WriteHeader(http.StatusOK)
+	// Add the new player (for simplicity, we will use a UUID as player ID)
+	playerID := uuid.New().String()
+	newPlayer := models.Player{
+		ID:     playerID,
+		Health: 3, // Set initial health for the player
+	}
+	room.Players = append(room.Players, newPlayer)
+	rooms[roomID] = room // Update the room in the map
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(room)
 }
