@@ -5,12 +5,13 @@ import "github.com/gorilla/websocket"
 
 type Player struct {
 	ID   string `json:"id"`
+	Deck []Card `json:"deck"`
 	Hand []Card `json:"hand"`
 }
 
 type Room struct {
-	ID      string    `json:"id"`
-	Players []*Player `json:"players"`
+	ID      string
+	Clients map[*Client]bool
 }
 
 type Card struct {
@@ -21,6 +22,10 @@ type Card struct {
 type Client struct {
 	Conn *websocket.Conn
 	Room *Room
+}
+
+func (c *Client) SendMessage(message []byte) error {
+	return c.Conn.WriteMessage(websocket.TextMessage, message)
 }
 
 type GameEvent struct {

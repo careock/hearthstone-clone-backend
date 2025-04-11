@@ -1,34 +1,54 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
 	"hearthstone-clone-backend/models"
 	"hearthstone-clone-backend/utils"
-	"net/http"
+	"log"
+
+	"github.com/gorilla/websocket"
 )
 
-func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
-	room := utils.CreateRoom()
-	// Return the room ID to the client
-	fmt.Fprintf(w, room.ID)
+func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
+	roomID := utils.GenerateRoomID()
+	room := &models.Room{
+		ID:      roomID,
+		Clients: make(map[*models.Client]bool),
+	}
+	client.Room = room
+	room.Clients[client] = true
+
+	response := models.GameEvent{
+		Type:    "roomCreated",
+		Payload: roomID,
+	}
+	sendEvent(client, response)
 }
 
-func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
-	roomID := r.URL.Query().Get("roomID")
-	playerID := r.URL.Query().Get("playerID")
-	// Find the room by ID
-	room := utils.FindRoomByID(roomID)
-	if room == nil {
-		http.Error(w, "Room not found", http.StatusNotFound)
+func sendEvent(client *models.Client, event models.GameEvent) {
+	message, err := json.Marshal(event)
+	if err != nil {
+		log.Println("Error marshaling event:", err)
 		return
 	}
-	// Create a new player
-	player := &models.Player{ID: playerID}
-	// Join the room
-	utils.JoinRoom(room, player)
-	// Draw the initial hand for the player
-	deck := utils.CreateDeck()
-	utils.DrawInitialHand(player, deck)
-	// Return a success response to the client
-	fmt.Fprintf(w, "Joined room successfully")
+
+	err = client.Conn.WriteMessage(websocket.TextMessage, message)
+	if err != nil {
+		log.Println("Error sending event:", err)
+	}
 }
+
+// func broadcastEvent(room *models.Room, event models.GameEvent) {
+// 	message, err := json.Marshal(event)
+// 	if err != nil {
+// 		log.Println("Error marshaling event:", err)
+// 		return
+// 	}
+
+// 	for client := range room.Clients {
+// 		err = client.Conn.WriteMessage(websocket.TextMessage, message)
+// 		if err != nil {
+// 			log.Println("Error broadcasting event:", err)
+// 		}
+// 	}
+// }

@@ -6,17 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateRoom() *models.Room {
-	return &models.Room{
-		ID:      generateRoomID(),
-		Players: make([]*models.Player, 0),
-	}
-}
-
-func JoinRoom(room *models.Room, player *models.Player) {
-	room.Players = append(room.Players, player)
-}
-
 func GenerateRoomID() string {
 	// Generate a unique room ID (you can use a library like github.com/google/uuid)
 	return uuid.New().String()
