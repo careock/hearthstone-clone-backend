@@ -5,8 +5,6 @@ import (
 	"hearthstone-clone-backend/models"
 	"hearthstone-clone-backend/utils"
 	"log"
-
-	"github.com/gorilla/websocket"
 )
 
 func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
@@ -15,6 +13,8 @@ func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
 		ID:      roomID,
 		Clients: make(map[*models.Client]bool),
 	}
+	log.Println(room)
+	utils.Rooms[roomID] = room
 	client.Room = room
 	room.Clients[client] = true
 
@@ -23,10 +23,11 @@ func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
 		Payload: roomID,
 	}
 	sendEvent(client, response)
+	log.Println(utils.Rooms)
 }
 
 func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
-	log.Println(payload)
+	log.Println(utils.Rooms)
 	roomID := payload.(string)
 	room := utils.Rooms[roomID]
 	if room == nil {
@@ -37,6 +38,7 @@ func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
 	gameState := &models.GameState{
 		RoomID: room.ID,
 	}
+	log.Println(gameState)
 	room.BroadcastGameState(gameState)
 }
 
@@ -47,10 +49,7 @@ func sendEvent(client *models.Client, event models.GameEvent) {
 		return
 	}
 
-	err = client.Conn.WriteMessage(websocket.TextMessage, message)
-	if err != nil {
-		log.Println("Error sending event:", err)
-	}
+	client.SendMessage(message)
 }
 
 // func broadcastEvent(room *models.Room, event models.GameEvent) {
