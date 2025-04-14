@@ -7,6 +7,15 @@ import (
 	"log"
 )
 
+func sendEvent(client *models.Client, event models.GameEvent) {
+	message, err := json.Marshal(event)
+	if err != nil {
+		log.Println("Error marshaling event:", err)
+		return
+	}
+	client.SendMessage(message)
+}
+
 func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
 	roomID := utils.GenerateRoomID()
 	room := &models.Room{
@@ -28,46 +37,28 @@ func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
 }
 
 func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
-	log.Println(utils.Rooms)
 	roomID := payload.(string)
 	room := utils.Rooms[roomID]
 	if room == nil {
 		log.Printf("Room not found: %s", roomID)
 		return
 	}
-	gameState := &models.GameState{
-		RoomID: room.ID,
-	}
+
 	room.Clients[client] = true
+	log.Printf("rooms:")
+	log.Println(utils.Rooms)
+	log.Printf("room:")
+	log.Println(room)
+	startGame(room)
+}
+
+func startGame(room *models.Room) {
+	gameState := &models.GameState{
+		RoomID:        room.ID,
+		CurrentPlayer: room.Clients[client],
+	}
+
 	room.BroadcastGameState(gameState)
 	log.Printf("gameState:")
 	log.Println(gameState)
-	log.Printf("room:")
-	log.Println(room)
 }
-
-func sendEvent(client *models.Client, event models.GameEvent) {
-	message, err := json.Marshal(event)
-	if err != nil {
-		log.Println("Error marshaling event:", err)
-		return
-	}
-
-	client.SendMessage(message)
-}
-
-// func broadcastEvent(room *models.Room, event models.GameEvent) {
-// 	message, err := json.Marshal(event)
-// 	log.Println(room)
-// 	if err != nil {
-// 		log.Println("Error marshaling event:", err)
-// 		return
-// 	}
-
-// 	for client := range room.Clients {
-// 		err = client.Conn.WriteMessage(websocket.TextMessage, message)
-// 		if err != nil {
-// 			log.Println("Error broadcasting event:", err)
-// 		}
-// 	}
-// }
