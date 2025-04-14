@@ -46,6 +46,9 @@ func createDeck() []models.Card {
 		{ID: "1", Name: "Card 1"},
 		{ID: "1", Name: "Card 1"},
 		{ID: "1", Name: "Card 1"},
+		{ID: "1", Name: "Card 1"},
+		{ID: "1", Name: "Card 1"},
+		{ID: "1", Name: "Card 1"},
 	}
 
 	// Shuffle the cards
@@ -72,7 +75,7 @@ func selectRandomPlayer(room *models.Room) string {
 	return currentPlayer.ID
 }
 
-func StartGame(room *models.Room) {
+func StartGame(room *models.Room) *models.GameState {
 	currentPlayer := selectRandomPlayer(room)
 
 	//объявляем начальное состояние игры (в этой комнате)
@@ -85,7 +88,7 @@ func StartGame(room *models.Room) {
 		Player2Deck:   createDeck(),
 	}
 	drawInitialHand(gameState)
-	room.BroadcastGameState(gameState)
 	log.Printf("gameState:")
 	log.Println(gameState)
+	return gameState
 }
