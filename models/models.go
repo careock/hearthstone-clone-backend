@@ -8,12 +8,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Player struct {
-	ID   string `json:"id"`
-	Deck []Card `json:"deck"`
-	Hand []Card `json:"hand"`
-}
-
 type Room struct {
 	ID      string
 	Clients map[*Client]bool
@@ -46,7 +40,8 @@ type Card struct {
 
 type Client struct {
 	Conn *websocket.Conn
-	Room *Room
+	Deck []Card `json:"deck"`
+	Hand []Card `json:"hand"`
 }
 
 func (c *Client) SendMessage(message []byte) error {
@@ -59,9 +54,8 @@ type GameEvent struct {
 }
 
 type GameState struct {
-	RoomID        string    `json:"roomID"`
-	Players       []*Player `json:"players"`
-	CurrentPlayer string    `json:"currentPlayer"`
-	TurnNumber    int       `json:"turnNumber"`
+	RoomID        string `json:"roomID"`
+	CurrentPlayer string `json:"currentPlayer"`
+	TurnNumber    int    `json:"turnNumber"`
 	// Add other relevant game state properties
 }

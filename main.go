@@ -30,6 +30,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	client := &models.Client{Conn: conn}
+	log.Println("Client connected")
+	log.Println(client)
 
 	for {
 		_, message, err := conn.ReadMessage()

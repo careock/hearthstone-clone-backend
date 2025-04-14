@@ -13,17 +13,18 @@ func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
 		ID:      roomID,
 		Clients: make(map[*models.Client]bool),
 	}
-	log.Println(room)
-	utils.Rooms[roomID] = room
-	client.Room = room
 	room.Clients[client] = true
-
+	utils.Rooms[roomID] = room
 	response := models.GameEvent{
 		Type:    "roomCreated",
 		Payload: roomID,
 	}
 	sendEvent(client, response)
+
 	log.Println(utils.Rooms)
+	log.Println(room)
+	log.Printf("сlient:")
+	log.Println(client)
 }
 
 func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
@@ -34,12 +35,15 @@ func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
 		log.Printf("Room not found: %s", roomID)
 		return
 	}
-
 	gameState := &models.GameState{
 		RoomID: room.ID,
 	}
-	log.Println(gameState)
+	room.Clients[client] = true
 	room.BroadcastGameState(gameState)
+	log.Printf("gameState:")
+	log.Println(gameState)
+	log.Printf("room:")
+	log.Println(room)
 }
 
 func sendEvent(client *models.Client, event models.GameEvent) {

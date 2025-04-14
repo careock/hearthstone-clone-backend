@@ -5,7 +5,7 @@ import (
 	"math/rand/v2"
 )
 
-func DrawInitialHand(player *models.Player, deck []models.Card) {
+func DrawInitialHand(player *models.Client, deck []models.Card) {
 	handSize := 3 // Adjust the initial hand size as needed
 	player.Hand = make([]models.Card, handSize)
 	for i := 0; i < handSize; i++ {
