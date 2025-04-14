@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 
+	"hearthstone-clone-backend/utils"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -28,8 +30,12 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
+	clientID := utils.GenerateRandomID()
+	client := &models.Client{
+		Conn: conn,
+		ID:   clientID,
+	}
 
-	client := &models.Client{Conn: conn}
 	log.Println("Client connected")
 	log.Println(client)
 

@@ -39,9 +39,8 @@ type Card struct {
 }
 
 type Client struct {
+	ID   string
 	Conn *websocket.Conn
-	Deck []Card `json:"deck"`
-	Hand []Card `json:"hand"`
 }
 
 func (c *Client) SendMessage(message []byte) error {
@@ -54,8 +53,14 @@ type GameEvent struct {
 }
 
 type GameState struct {
+	ID            string
 	RoomID        string `json:"roomID"`
 	CurrentPlayer string `json:"currentPlayer"`
 	TurnNumber    int    `json:"turnNumber"`
-	// Add other relevant game state properties
+	Player1Hand   []Card `json:"player1Hand"`
+	Player2Hand   []Card `json:"player2Hand"`
+	Player1Deck   []Card `json:"player1Deck"`
+	Player2Deck   []Card `json:"player2Deck"`
+	Player1Board  []Card `json:"player1Board"`
+	Player2Board  []Card `json:"player2Board"`
 }

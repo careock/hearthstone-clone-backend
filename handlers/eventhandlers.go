@@ -17,7 +17,7 @@ func sendEvent(client *models.Client, event models.GameEvent) {
 }
 
 func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
-	roomID := utils.GenerateRoomID()
+	roomID := utils.GenerateRandomID()
 	room := &models.Room{
 		ID:      roomID,
 		Clients: make(map[*models.Client]bool),
@@ -49,16 +49,5 @@ func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
 	log.Println(utils.Rooms)
 	log.Printf("room:")
 	log.Println(room)
-	startGame(room)
-}
-
-func startGame(room *models.Room) {
-	gameState := &models.GameState{
-		RoomID:        room.ID,
-		CurrentPlayer: room.Clients[client],
-	}
-
-	room.BroadcastGameState(gameState)
-	log.Printf("gameState:")
-	log.Println(gameState)
+	utils.StartGame(room)
 }
