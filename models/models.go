@@ -8,6 +8,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// CardConfig структура для хранения конфигурации карт
+type CardConfig struct {
+	Cards []Card `json:"cards"`
+}
+
 type Room struct {
 	ID      string
 	Clients map[*Client]bool
@@ -34,10 +39,23 @@ func (r *Room) BroadcastMessage(message []byte) {
 }
 
 type Card struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ManaCost    int    `json:"manaCost"`
+	Type        string `json:"type"` // minion, spell
+}
+
+type Minion struct {
 	ID     string `json:"id"`
-	Name   string `json:"name"`
+	CardID string `json:"cardID"`
 	Attack int    `json:"attack"`
 	Health int    `json:"health"`
+}
+
+type Spell struct {
+	ID     string `json:"id"`
+	CardID string `json:"cardID"`
 }
 
 type Client struct {
