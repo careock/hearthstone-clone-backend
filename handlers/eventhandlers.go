@@ -67,11 +67,3 @@ func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
 		})
 	}
 }
-
-func HandlePlayCardEvent(client *models.Client, payload interface{}) {
-	// TODO: Implement this function
-	log.Println("HandlePlayCardEvent")
-	log.Println(payload)
-	log.Println(client)
-	log.Println(utils.Rooms)
-}

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"hearthstone-clone-backend/models"
 	"log"
 	"math/rand"
@@ -21,6 +22,8 @@ func GenerateRandomID() string {
 }
 
 func drawInitialHand(gameState *models.GameState) {
+
+	//надо проверить ВЕЗЕ как определяется текущий игрок - кажется говно
 	handSizePlayer1 := 3
 	handSizePlayer2 := 3
 
@@ -105,6 +108,7 @@ func StartGame(room *models.Room) *models.GameState {
 	currentPlayer := selectRandomPlayer(room)
 
 	//объявляем начальное состояние игры (в этой комнате)
+
 	gameState := &models.GameState{
 		ID:            GenerateRandomID(),
 		RoomID:        room.ID,
@@ -119,31 +123,33 @@ func StartGame(room *models.Room) *models.GameState {
 	return gameState
 }
 
-// PlayCardResult результат попытки сыграть карту
-type PlayCardResult struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-}
-
-func PlayCard(gameState *models.GameState, cardID string, playerID string, boardSlot int) *PlayCardResult {
-	var playerHand *[]models.Card
-	var playerBoard *[]models.Card
-
+func PlayCard(gameState *models.GameState, playerID string, cardID string, boardSlot int) (*models.GameState, error) {
 	// Определяем, чья очередь и проверяем, что это текущий игрок
 	if playerID != gameState.CurrentPlayer {
-		return &PlayCardResult{
-			Success: false,
-			Message: "It's not your turn",
-		}
+		return nil, fmt.Errorf("it's not your turn")
 	}
 
 	// Определяем руку и доску игрока
-	if playerID == gameState.CurrentPlayer {
+	var playerHand, opponentHand *[]models.Card
+	var playerBoard *[]models.Minion
+
+	isPlayer1 := playerID == gameState.CurrentPlayer
+	if isPlayer1 {
 		playerHand = &gameState.Player1Hand
 		playerBoard = &gameState.Player1Board
+		opponentHand = &gameState.Player2Hand
+
 	} else {
 		playerHand = &gameState.Player2Hand
 		playerBoard = &gameState.Player2Board
+		opponentHand = &gameState.Player1Hand
+
+	}
+
+	// Получаем конфигурацию карт
+	config, err := loadCardConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load card config: %v", err)
 	}
 
 	// Ищем карту в руке игрока
@@ -158,44 +164,57 @@ func PlayCard(gameState *models.GameState, cardID string, playerID string, board
 	}
 
 	if cardIndex == -1 {
-		return &PlayCardResult{
-			Success: false,
-			Message: "Card not found in hand",
-		}
+		return nil, fmt.Errorf("card not found in hand")
 	}
 
 	switch playedCard.Type {
 	case "minion":
 		// Проверяем, есть ли место на доске
 		if len(*playerBoard) >= 7 {
-			return &PlayCardResult{
-				Success: false,
-				Message: "Board is full",
-			}
+			return nil, fmt.Errorf("board is full")
 		}
 
 		// Проверяем валидность позиции
 		if boardSlot < 0 || boardSlot > len(*playerBoard) {
-			return &PlayCardResult{
-				Success: false,
-				Message: "Invalid board position",
+			return nil, fmt.Errorf("invalid board position")
+		}
+
+		// Ищем параметры миньона в конфиге
+		var minionStats models.Minion
+		found := false
+		for _, minion := range config.Minions {
+			if minion.CardID == playedCard.ID {
+				minionStats = minion
+				found = true
+				break
 			}
 		}
 
+		if !found {
+			return nil, fmt.Errorf("minion stats not found in config for card: %s", playedCard.ID)
+		}
+
 		// Добавляем миньона на доску в указанную позицию
-		*playerBoard = append((*playerBoard)[:boardSlot], append([]models.Card{playedCard}, (*playerBoard)[boardSlot:]...)...)
+		*playerBoard = append((*playerBoard)[:boardSlot], append([]models.Minion{minionStats}, (*playerBoard)[boardSlot:]...)...)
 
 		// Удаляем карту из руки
 		*playerHand = append((*playerHand)[:cardIndex], (*playerHand)[cardIndex+1:]...)
 
-		return &PlayCardResult{
-			Success: true,
-			Message: "Minion summoned successfully",
+		// Передаем ход другому игроку
+		if isPlayer1 {
+			gameState.CurrentPlayer = (*opponentHand)[0].ID
+		} else {
+			gameState.CurrentPlayer = (*playerHand)[0].ID
 		}
-	}
+		gameState.TurnNumber++
 
-	return &PlayCardResult{
-		Success: true,
-		Message: "Card played successfully",
+		return gameState, nil
+
+	case "spell":
+		// TODO: Implement spell logic
+		return nil, fmt.Errorf("spell cards not implemented yet")
+
+	default:
+		return nil, fmt.Errorf("unknown card type")
 	}
 }
