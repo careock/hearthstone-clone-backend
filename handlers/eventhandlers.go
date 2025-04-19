@@ -67,3 +67,56 @@ func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
 		})
 	}
 }
+
+func HandlePlayCardEvent(client *models.Client, payload interface{}) {
+	// Преобразуем payload в структуру
+	payloadMap := payload.(map[string]interface{})
+	playCardPayload := models.PlayCardPayload{
+		CardID:    payloadMap["cardID"].(string),
+		BoardSlot: int(payloadMap["boardSlot"].(float64)),
+	}
+
+	// Ищем активную игру, где этот клиент является текущим игроком
+	var gameState *models.GameState
+	for _, gs := range utils.GameStates {
+		if gs.CurrentPlayer == client.ID {
+			gameState = gs
+			break
+		}
+	}
+
+	if gameState == nil {
+		log.Printf("No active game found for player: %s", client.ID)
+		sendEvent(client, models.GameEvent{
+			Type:    "error",
+			Payload: "No active game found or not your turn",
+		})
+		return
+	}
+
+	// Играем карту
+	updatedGameState, err := utils.PlayCard(gameState, client.ID, playCardPayload.CardID, playCardPayload.BoardSlot)
+	if err != nil {
+		log.Printf("Error playing card: %v", err)
+		sendEvent(client, models.GameEvent{
+			Type:    "error",
+			Payload: err.Error(),
+		})
+		return
+	}
+
+	// Обновляем состояние игры
+	utils.GameStates[updatedGameState.ID] = updatedGameState
+
+	// Получаем комнату
+	room := utils.Rooms[updatedGameState.RoomID]
+
+	// Отправляем обновленное состояние каждому игроку
+	for clientInRoom := range room.Clients {
+		playerState := utils.CreatePlayerGameState(updatedGameState, clientInRoom.ID)
+		sendEvent(clientInRoom, models.GameEvent{
+			Type:    "gameState",
+			Payload: playerState,
+		})
+	}
+}

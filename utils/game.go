@@ -12,6 +12,7 @@ import (
 )
 
 var Rooms = make(map[string]*models.Room)
+var GameStates = make(map[string]*models.GameState)
 
 func FindRoomByID(roomID string) *models.Room {
 	return Rooms[roomID]
