@@ -34,8 +34,10 @@ func (r *Room) BroadcastMessage(message []byte) {
 }
 
 type Card struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Attack int    `json:"attack"`
+	Health int    `json:"health"`
 }
 
 type Client struct {
@@ -63,4 +65,17 @@ type GameState struct {
 	Player2Deck   []Card `json:"player2Deck"`
 	Player1Board  []Card `json:"player1Board"`
 	Player2Board  []Card `json:"player2Board"`
+}
+
+type PlayerGameState struct {
+	ID            string `json:"id"`
+	RoomID        string `json:"roomID"`
+	CurrentPlayer string `json:"currentPlayer"`
+	TurnNumber    int    `json:"turnNumber"`
+	MyHand        []Card `json:"myHand"`
+	OpponentHand  int    `json:"opponentHandSize"` // только количество карт
+	MyDeck        int    `json:"myDeckSize"`       // только количество карт
+	OpponentDeck  int    `json:"opponentDeckSize"` // только количество карт
+	MyBoard       []Card `json:"myBoard"`
+	OpponentBoard []Card `json:"opponentBoard"`
 }

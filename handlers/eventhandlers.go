@@ -38,8 +38,6 @@ func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
 
 func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
 
-	//здесь еще надо дописать, что игроков должно быть ровно 2 (то есть оба есть в комнате)
-
 	roomID := payload.(string)
 	room := utils.Rooms[roomID]
 	if room == nil {
@@ -52,9 +50,22 @@ func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
 	log.Println(utils.Rooms)
 	log.Printf("room:")
 	log.Println(room)
+
+	// Проверяем, что в комнате ровно 2 игрока
+	if len(room.Clients) != 2 {
+		log.Printf("Waiting for another player...")
+		return
+	}
+
 	gameState := utils.StartGame(room)
 
-	room.BroadcastGameState(gameState)
+	for clientInRoom := range room.Clients {
+		playerState := utils.CreatePlayerGameState(gameState, clientInRoom.ID)
+		sendEvent(clientInRoom, models.GameEvent{
+			Type:    "gameState",
+			Payload: playerState,
+		})
+	}
 }
 
 func HandlePlayCardEvent(client *models.Client, payload interface{}) {
