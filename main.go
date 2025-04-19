@@ -2,30 +2,66 @@
 package main
 
 import (
+	"encoding/json"
+	"hearthstone-clone-backend/handlers"
+	"hearthstone-clone-backend/models"
 	"log"
 	"net/http"
 
-	"hearthstone-clone-backend/handlers"
 	"hearthstone-clone-backend/utils"
 
-	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
 func main() {
-	r := mux.NewRouter()
+	http.HandleFunc("/ws", handleWebSocket)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
 
-	// Define endpoints
-	r.HandleFunc("/game-state", handlers.GetGameState).Methods("GET")
-	r.HandleFunc("/create-room", handlers.CreateRoom).Methods("POST")
-	r.HandleFunc("/join-game", handlers.JoinGame).Methods("POST")
-	r.HandleFunc("/ws", handlers.HandleWebSocket) // Add WebSocket endpoint
+func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Error upgrading to WebSocket:", err)
+		return
+	}
+	defer conn.Close()
+	clientID := utils.GenerateRandomID()
+	client := &models.Client{
+		Conn: conn,
+		ID:   clientID,
+	}
 
-	// Start the hub
-	go utils.StartHub()
+	log.Println("Client connected")
+	log.Println(client)
 
-	// Start the server
-	log.Println("Server is running on port 8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
-		log.Fatal(err)
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("Error reading message:", err)
+			break
+		}
+
+		var event models.GameEvent
+		err = json.Unmarshal(message, &event)
+		if err != nil {
+			log.Println("Error unmarshaling event:", err)
+			continue
+		}
+
+		switch event.Type {
+		case "createRoom":
+			handlers.HandleCreateRoomEvent(client, event.Payload)
+		case "joinRoom":
+			handlers.HandleJoinRoomEvent(client, event.Payload)
+		case "playCard":
+			handlers.HandlePlayCardEvent(client, event.Payload)
+		default:
+			log.Println("Unknown event type:", event.Type)
+		}
 	}
 }
