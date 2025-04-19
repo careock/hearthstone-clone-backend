@@ -8,6 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
+var Rooms = make(map[string]*models.Room)
+
+func FindRoomByID(roomID string) *models.Room {
+	return Rooms[roomID]
+}
+
 func GenerateRandomID() string {
 	return uuid.New().String()
 }
