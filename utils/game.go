@@ -121,6 +121,7 @@ func StartGame(room *models.Room) *models.GameState {
 	drawInitialHand(gameState)
 	log.Printf("gameState:")
 	log.Println(gameState)
+	GameStates[gameState.ID] = gameState
 	return gameState
 }
 
@@ -202,12 +203,18 @@ func PlayCard(gameState *models.GameState, playerID string, cardID string, board
 		*playerHand = append((*playerHand)[:cardIndex], (*playerHand)[cardIndex+1:]...)
 
 		// Передаем ход другому игроку
+		//////здесь пиздец какой-то записываем очко !!!!!!!!!!!
 		if isPlayer1 {
 			gameState.CurrentPlayer = (*opponentHand)[0].ID
 		} else {
 			gameState.CurrentPlayer = (*playerHand)[0].ID
 		}
 		gameState.TurnNumber++
+
+		// Before updating game state
+		log.Printf("Updating game state for game %s", gameState.ID)
+		GameStates[gameState.ID] = gameState
+		log.Printf("Game state updated successfully")
 
 		return gameState, nil
 

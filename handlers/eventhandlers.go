@@ -25,8 +25,11 @@ func HandleCreateRoomEvent(client *models.Client, payload interface{}) {
 	room.Clients[client] = true
 	utils.Rooms[roomID] = room
 	response := models.GameEvent{
-		Type:    "roomCreated",
-		Payload: roomID,
+		Type: "roomCreated",
+		Payload: map[string]interface{}{
+			"roomID":   room.ID,
+			"clientID": client.ID,
+		},
 	}
 	log.Println(utils.Rooms)
 	log.Println(room)
@@ -66,19 +69,59 @@ func HandleJoinRoomEvent(client *models.Client, payload interface{}) {
 			Payload: playerState,
 		})
 	}
+
+	sendEvent(client, models.GameEvent{
+		Type: "roomJoined",
+		Payload: map[string]interface{}{
+			"roomID":   room.ID,
+			"clientID": client.ID,
+		},
+	})
 }
 
 func HandlePlayCardEvent(client *models.Client, payload interface{}) {
-	// Преобразуем payload в структуру
-	payloadMap := payload.(map[string]interface{})
+	payloadMap, ok := payload.(map[string]interface{})
+	if !ok {
+		log.Printf("Invalid payload format")
+		sendEvent(client, models.GameEvent{
+			Type:    "error",
+			Payload: "Invalid payload format",
+		})
+		return
+	}
+
+	cardID, ok := payloadMap["cardID"].(string)
+	if !ok {
+		log.Printf("Invalid cardID format")
+		sendEvent(client, models.GameEvent{
+			Type:    "error",
+			Payload: "Invalid cardID format",
+		})
+		return
+	}
+
+	boardSlotFloat, ok := payloadMap["boardSlot"].(float64)
+	if !ok {
+		log.Printf("Invalid boardSlot format")
+		sendEvent(client, models.GameEvent{
+			Type:    "error",
+			Payload: "Invalid boardSlot format",
+		})
+		return
+	}
+
 	playCardPayload := models.PlayCardPayload{
-		CardID:    payloadMap["cardID"].(string),
-		BoardSlot: int(payloadMap["boardSlot"].(float64)),
+		CardID:    cardID,
+		BoardSlot: int(boardSlotFloat),
 	}
 
 	// Ищем активную игру, где этот клиент является текущим игроком
+	//здесь ошибка неверно определяется - я дебажил.
 	var gameState *models.GameState
+	log.Printf("ALL GAME STATES : %s", utils.GameStates)
 	for _, gs := range utils.GameStates {
+		log.Printf("Client attemptiong to play card : %s", client.ID)
+		log.Printf("CurrentPlayer : %s", gs.CurrentPlayer)
 		if gs.CurrentPlayer == client.ID {
 			gameState = gs
 			break
