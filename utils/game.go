@@ -13,6 +13,7 @@ import (
 
 var Rooms = make(map[string]*models.Room)
 var GameStates = make(map[string]*models.GameState)
+var GamePlayerSlots map[string]map[string]int
 
 func FindRoomByID(roomID string) *models.Room {
 	return Rooms[roomID]
@@ -106,6 +107,17 @@ func selectRandomPlayer(room *models.Room) string {
 }
 
 func StartGame(room *models.Room) *models.GameState {
+	// Преобразуем карту клиентов в слайс для фиксированного назначения
+	clients := make([]*models.Client, 0, len(room.Clients))
+	for client := range room.Clients {
+		clients = append(clients, client)
+	}
+
+	// Назначаем игроков в фиксированные слоты
+	player1ID := clients[0].ID
+	player2ID := clients[1].ID
+
+	// Выбираем случайного игрока для первого хода
 	currentPlayer := selectRandomPlayer(room)
 
 	//объявляем начальное состояние игры (в этой комнате)
@@ -118,6 +130,16 @@ func StartGame(room *models.Room) *models.GameState {
 		Player1Deck:   createDeck(),
 		Player2Deck:   createDeck(),
 	}
+
+	// Сохраняем ID игроков в map для быстрого доступа
+	if GamePlayerSlots == nil {
+		GamePlayerSlots = make(map[string]map[string]int)
+	}
+	GamePlayerSlots[gameState.ID] = map[string]int{
+		player1ID: 1,
+		player2ID: 2,
+	}
+
 	drawInitialHand(gameState)
 	log.Printf("gameState:")
 	log.Println(gameState)
@@ -131,21 +153,34 @@ func PlayCard(gameState *models.GameState, playerID string, cardID string, board
 		return nil, fmt.Errorf("it's not your turn")
 	}
 
+	// Определяем, какой игрок в каком слоте (Player1 или Player2)
+	playerSlots := GamePlayerSlots[gameState.ID]
+	if playerSlots == nil {
+		return nil, fmt.Errorf("game player slots not found")
+	}
+
+	playerSlot := playerSlots[playerID]
+	isPlayer1 := playerSlot == 1
+
+	// Получаем ID противника
+	var opponentID string
+	for id := range playerSlots {
+		if id != playerID {
+			opponentID = id
+			break
+		}
+	}
+
 	// Определяем руку и доску игрока
-	var playerHand, opponentHand *[]models.Card
+	var playerHand *[]models.Card
 	var playerBoard *[]models.Minion
 
-	isPlayer1 := playerID == gameState.CurrentPlayer
 	if isPlayer1 {
 		playerHand = &gameState.Player1Hand
 		playerBoard = &gameState.Player1Board
-		opponentHand = &gameState.Player2Hand
-
 	} else {
 		playerHand = &gameState.Player2Hand
 		playerBoard = &gameState.Player2Board
-		opponentHand = &gameState.Player1Hand
-
 	}
 
 	// Получаем конфигурацию карт
@@ -203,12 +238,7 @@ func PlayCard(gameState *models.GameState, playerID string, cardID string, board
 		*playerHand = append((*playerHand)[:cardIndex], (*playerHand)[cardIndex+1:]...)
 
 		// Передаем ход другому игроку
-		//////здесь пиздец какой-то записываем очко !!!!!!!!!!!
-		if isPlayer1 {
-			gameState.CurrentPlayer = (*opponentHand)[0].ID
-		} else {
-			gameState.CurrentPlayer = (*playerHand)[0].ID
-		}
+		gameState.CurrentPlayer = opponentID
 		gameState.TurnNumber++
 
 		// Before updating game state

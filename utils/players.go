@@ -5,7 +5,10 @@ import (
 )
 
 func CreatePlayerGameState(gameState *models.GameState, playerID string) *models.PlayerGameState {
-	isPlayer1 := (playerID == gameState.CurrentPlayer)
+	// Определяем, какой игрок в каком слоте (Player1 или Player2)
+	playerSlots := GamePlayerSlots[gameState.ID]
+	playerSlot := playerSlots[playerID]
+	isPlayer1 := playerSlot == 1
 
 	playerState := &models.PlayerGameState{
 		ID:            gameState.ID,
