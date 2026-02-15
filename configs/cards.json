@@ -1,0 +1,136 @@
+{
+    "cards": [
+      {
+        "id": "minion_1",
+        "name": "Novice Warrior",
+        "description": "A fresh recruit eager for battle",
+        "manaCost": 1,
+        "type": "minion"
+      },
+      {
+        "id": "minion_2",
+        "name": "Seasoned Knight",
+        "description": "Veteran of many battles",
+        "manaCost": 3,
+        "type": "minion"
+      },
+      {
+        "id": "minion_3",
+        "name": "Forest Guardian",
+        "description": "Protector of the ancient woods",
+        "manaCost": 2,
+        "type": "minion"
+      },
+      {
+        "id": "minion_4",
+        "name": "Fire Elemental",
+        "description": "Born from the eternal flames",
+        "manaCost": 1,
+        "type": "minion"
+      },
+      {
+        "id": "minion_5",
+        "name": "Shadow Assassin",
+        "description": "Strikes from the darkness",
+        "manaCost": 3,
+        "type": "minion"
+      },
+      {
+        "id": "minion_6",
+        "name": "Mountain Giant",
+        "description": "A massive creature of stone",
+        "manaCost": 3,
+        "type": "minion"
+      },
+      {
+        "id": "minion_7",
+        "name": "Healing Priest",
+        "description": "Tends to the wounded",
+        "manaCost": 2,
+        "type": "minion"
+      },
+      {
+        "id": "minion_8",
+        "name": "Storm Drake",
+        "description": "Master of wind and lightning",
+        "manaCost": 0,
+        "type": "minion"
+      },
+      {
+        "id": "minion_9",
+        "name": "Arcane Scholar",
+        "description": "Keeper of ancient knowledge",
+        "manaCost": 3,
+        "type": "minion"
+      },
+      {
+        "id": "minion_10",
+        "name": "War Golem",
+        "description": "An enchanted construct",
+        "manaCost": 2,
+        "type": "minion"
+      }
+    ],
+    "minions": [
+      {
+        "id": "minion_stats_1",
+        "cardID": "minion_1",
+        "attack": 1,
+        "health": 2
+      },
+      {
+        "id": "minion_stats_2",
+        "cardID": "minion_2",
+        "attack": 3,
+        "health": 4
+      },
+      {
+        "id": "minion_stats_3",
+        "cardID": "minion_3",
+        "attack": 3,
+        "health": 6
+      },
+      {
+        "id": "minion_stats_4",
+        "cardID": "minion_4",
+        "attack": 6,
+        "health": 5
+      },
+      {
+        "id": "minion_stats_5",
+        "cardID": "minion_5",
+        "attack": 4,
+        "health": 2
+      },
+      {
+        "id": "minion_stats_6",
+        "cardID": "minion_6",
+        "attack": 8,
+        "health": 8
+      },
+      {
+        "id": "minion_stats_7",
+        "cardID": "minion_7",
+        "attack": 1,
+        "health": 3
+      },
+      {
+        "id": "minion_stats_8",
+        "cardID": "minion_8",
+        "attack": 5,
+        "health": 6
+      },
+      {
+        "id": "minion_stats_9",
+        "cardID": "minion_9",
+        "attack": 2,
+        "health": 5
+      },
+      {
+        "id": "minion_stats_10",
+        "cardID": "minion_10",
+        "attack": 7,
+        "health": 7
+      }
+    ]
+  }
