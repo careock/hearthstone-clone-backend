@@ -1,12 +1,59 @@
 package utils
 
 import (
+	"encoding/json"
 	"hearthstone-clone-backend/models"
 	"log"
 	"math/rand"
+	"os"
 
 	"github.com/google/uuid"
 )
+
+// Config structures for loading cards.json
+type CardConfig struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ManaCost    int    `json:"manaCost"`
+	Type        string `json:"type"`
+}
+
+type MinionConfig struct {
+	ID     string `json:"id"`
+	CardID string `json:"cardID"`
+	Attack int    `json:"attack"`
+	Health int    `json:"health"`
+}
+
+type CardsConfig struct {
+	Cards   []CardConfig   `json:"cards"`
+	Minions []MinionConfig `json:"minions"`
+}
+
+var loadedConfig *CardsConfig
+
+// LoadCardsConfig loads the cards configuration from configs/cards.json
+func LoadCardsConfig() (*CardsConfig, error) {
+	if loadedConfig != nil {
+		return loadedConfig, nil
+	}
+
+	file, err := os.Open("configs/cards.json")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var config CardsConfig
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&config); err != nil {
+		return nil, err
+	}
+
+	loadedConfig = &config
+	return loadedConfig, nil
+}
 
 func GenerateRandomID() string {
 	return uuid.New().String()
@@ -41,14 +88,34 @@ func drawInitialHand(gameState *models.GameState) {
 }
 
 func createDeck() []models.Card {
-	// Define the cards in the deck
-	cards := []models.Card{
-		{ID: "1", Name: "Card 1"},
-		{ID: "1", Name: "Card 1"},
-		{ID: "1", Name: "Card 1"},
-		{ID: "1", Name: "Card 1"},
-		{ID: "1", Name: "Card 1"},
-		{ID: "1", Name: "Card 1"},
+	config, err := LoadCardsConfig()
+	if err != nil {
+		log.Printf("Error loading cards config: %v", err)
+		return []models.Card{}
+	}
+
+	// Create a map of minion stats by cardID for quick lookup
+	minionStats := make(map[string]MinionConfig)
+	for _, minion := range config.Minions {
+		minionStats[minion.CardID] = minion
+	}
+
+	// Build deck with multiple copies of each minion
+	var cards []models.Card
+	for _, cardConfig := range config.Cards {
+		if cardConfig.Type == "minion" {
+			// Add 2 copies of each minion to the deck
+			for i := 0; i < 2; i++ {
+				card := models.Card{
+					ID:          cardConfig.ID,
+					Name:        cardConfig.Name,
+					Description: cardConfig.Description,
+					ManaCost:    cardConfig.ManaCost,
+					Type:        cardConfig.Type,
+				}
+				cards = append(cards, card)
+			}
+		}
 	}
 
 	// Shuffle the cards

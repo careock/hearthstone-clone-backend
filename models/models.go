@@ -34,8 +34,17 @@ func (r *Room) BroadcastMessage(message []byte) {
 }
 
 type Card struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ManaCost    int    `json:"manaCost"`
+	Type        string `json:"type"`
+}
+
+type Minion struct {
+	Card
+	Attack int `json:"attack"`
+	Health int `json:"health"`
 }
 
 type Client struct {
@@ -54,13 +63,13 @@ type GameEvent struct {
 
 type GameState struct {
 	ID            string
-	RoomID        string `json:"roomID"`
-	CurrentPlayer string `json:"currentPlayer"`
-	TurnNumber    int    `json:"turnNumber"`
-	Player1Hand   []Card `json:"player1Hand"`
-	Player2Hand   []Card `json:"player2Hand"`
-	Player1Deck   []Card `json:"player1Deck"`
-	Player2Deck   []Card `json:"player2Deck"`
-	Player1Board  []Card `json:"player1Board"`
-	Player2Board  []Card `json:"player2Board"`
+	RoomID        string   `json:"roomID"`
+	CurrentPlayer string   `json:"currentPlayer"`
+	TurnNumber    int      `json:"turnNumber"`
+	Player1Hand   []Card   `json:"player1Hand"`
+	Player2Hand   []Card   `json:"player2Hand"`
+	Player1Deck   []Card   `json:"player1Deck"`
+	Player2Deck   []Card   `json:"player2Deck"`
+	Player1Board  []Minion `json:"player1Board"`
+	Player2Board  []Minion `json:"player2Board"`
 }
