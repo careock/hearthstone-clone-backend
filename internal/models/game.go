@@ -1,38 +1,6 @@
-// models/models.go
 package models
 
-import (
-	"encoding/json"
-	"log"
-
-	"github.com/gorilla/websocket"
-)
-
-type Room struct {
-	ID      string
-	Clients map[*Client]bool
-}
-
-func (r *Room) BroadcastGameState(gameState *GameState) {
-	message, err := json.Marshal(gameState)
-	if err != nil {
-		log.Printf("Error marshaling game state: %v", err)
-		return
-	}
-	r.BroadcastMessage(message)
-}
-
-func (r *Room) BroadcastMessage(message []byte) {
-	for client := range r.Clients {
-		err := client.SendMessage(message)
-		if err != nil {
-			log.Printf("Error sending message to client: %v", err)
-			client.Conn.Close()
-			delete(r.Clients, client)
-		}
-	}
-}
-
+// Card represents a generic card in the game
 type Card struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -41,28 +9,22 @@ type Card struct {
 	Type        string `json:"type"`
 }
 
+// Minion represents a minion card with attack and health
 type Minion struct {
 	Card
 	Attack int `json:"attack"`
 	Health int `json:"health"`
 }
 
-type Client struct {
-	ID   string
-	Conn *websocket.Conn
-}
-
-func (c *Client) SendMessage(message []byte) error {
-	return c.Conn.WriteMessage(websocket.TextMessage, message)
-}
-
+// GameEvent represents an event sent between client and server
 type GameEvent struct {
 	Type    string      `json:"type"`
 	Payload interface{} `json:"payload"`
 }
 
+// GameState represents the current state of a game
 type GameState struct {
-	ID            string
+	ID            string   `json:"id"`
 	RoomID        string   `json:"roomID"`
 	CurrentPlayer string   `json:"currentPlayer"`
 	TurnNumber    int      `json:"turnNumber"`
@@ -72,4 +34,20 @@ type GameState struct {
 	Player2Deck   []Card   `json:"player2Deck"`
 	Player1Board  []Minion `json:"player1Board"`
 	Player2Board  []Minion `json:"player2Board"`
+}
+
+// NewGameState creates a new game state for a room
+func NewGameState(id, roomID, currentPlayer string) *GameState {
+	return &GameState{
+		ID:            id,
+		RoomID:        roomID,
+		CurrentPlayer: currentPlayer,
+		TurnNumber:    1,
+		Player1Hand:   make([]Card, 0),
+		Player2Hand:   make([]Card, 0),
+		Player1Deck:   make([]Card, 0),
+		Player2Deck:   make([]Card, 0),
+		Player1Board:  make([]Minion, 0),
+		Player2Board:  make([]Minion, 0),
+	}
 }

@@ -1,4 +1,4 @@
-package utils
+package service
 
 import (
 	"regexp"
@@ -6,21 +6,21 @@ import (
 )
 
 func TestGenerateRandomID(t *testing.T) {
-	// Генерируем ID
+	// Generate ID
 	id := GenerateRandomID()
 
-	// Проверяем, что ID не пустой
+	// Check that ID is not empty
 	if id == "" {
 		t.Error("GenerateRandomID() returned empty string")
 	}
 
-	// Проверяем формат UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+	// Check UUID format
 	uuidRegex := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 	if !uuidRegex.MatchString(id) {
 		t.Errorf("GenerateRandomID() returned invalid UUID format: %s", id)
 	}
 
-	// Проверяем уникальность - генерируем несколько ID и убеждаемся, что они разные
+	// Check uniqueness
 	ids := make(map[string]bool)
 	ids[id] = true
 
